@@ -1,7 +1,6 @@
 import { getRequestHeaders } from "../../../../script.js";
 
 const extensionName = "lore-manager";
-const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 
 // Загрузить список всех лорбуков с сервера
 async function fetchAllLorebooks() {
@@ -13,7 +12,6 @@ async function fetchAllLorebooks() {
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         console.log(`[${extensionName}] API response:`, data);
-        // API может вернуть массив строк, массив объектов, или объект с полем files/entries
         if (Array.isArray(data)) return data;
         if (data && Array.isArray(data.files)) return data.files;
         if (data && Array.isArray(data.entries)) return data.entries;
@@ -25,15 +23,35 @@ async function fetchAllLorebooks() {
     }
 }
 
-// Удалить один лорбук
+// Удалить один лорбук — пробуем разные форматы имени
 async function deleteLorebook(name) {
-    const response = await fetch("/api/worldinfo/delete", {
+    // Пробуем как есть
+    let response = await fetch("/api/worldinfo/delete", {
         method: "POST",
         headers: getRequestHeaders(),
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name: name }),
     });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return true;
+    if (response.ok) return true;
+
+    // Пробуем без .json
+    const nameNoExt = name.replace(/\.json$/i, "");
+    response = await fetch("/api/worldinfo/delete", {
+        method: "POST",
+        headers: getRequestHeaders(),
+        body: JSON.stringify({ name: nameNoExt }),
+    });
+    if (response.ok) return true;
+
+    // Пробуем с .json
+    const nameWithExt = nameNoExt + ".json";
+    response = await fetch("/api/worldinfo/delete", {
+        method: "POST",
+        headers: getRequestHeaders(),
+        body: JSON.stringify({ name: nameWithExt }),
+    });
+    if (response.ok) return true;
+
+    throw new Error(`HTTP ${response.status}`);
 }
 
 // Обновить счётчик
@@ -55,7 +73,6 @@ function renderList(lorebooks) {
     }
 
     lorebooks.forEach((entry) => {
-        // API может вернуть строку или объект {name: "..."}
         const name = typeof entry === "string" ? entry : (entry.name || entry.uid || JSON.stringify(entry));
         const safeId = `lore-cb-${name.replace(/[^a-zA-Z0-9]/g, "_")}`;
         const $item = $(`
@@ -71,7 +88,7 @@ function renderList(lorebooks) {
     updateCount();
 }
 
-// Главная функция обновления
+// Обновить список
 async function refreshList() {
     const $list = $("#lore-manager-list");
     $list.html('<div class="lore-manager-empty"><i class="fa-solid fa-spinner fa-spin"></i> Загрузка...</div>');
@@ -102,6 +119,7 @@ async function deleteSelected() {
         try {
             await deleteLorebook(name);
             successCount++;
+            console.log(`[${extensionName}] Удалён: ${name}`);
         } catch (err) {
             console.error(`[${extensionName}] Не удалось удалить "${name}":`, err);
             failCount++;
@@ -114,7 +132,7 @@ async function deleteSelected() {
     await refreshList();
 }
 
-// Инициализация — HTML встроен прямо в JS, никаких внешних файлов
+// Инициализация
 jQuery(async () => {
     console.log(`[${extensionName}] Loading...`);
     try {
