@@ -1,57 +1,19 @@
 import { getRequestHeaders } from "../../../../script.js";
+import { getWorldInfoPrompt, world_names, deleteWorldInfo } from "../../../world-info.js";
 
 const extensionName = "lore-manager";
 
-// Загрузить список всех лорбуков с сервера
-async function fetchAllLorebooks() {
+// Загрузить список всех лорбуков из глобального массива ST
+function getAllLorebooks() {
     try {
-        const response = await fetch("/api/worldinfo/list", {
-            method: "POST",
-            headers: getRequestHeaders(),
-        });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        console.log(`[${extensionName}] API response:`, data);
-        if (Array.isArray(data)) return data;
-        if (data && Array.isArray(data.files)) return data.files;
-        if (data && Array.isArray(data.entries)) return data.entries;
+        if (Array.isArray(world_names)) {
+            return [...world_names];
+        }
         return [];
     } catch (err) {
-        console.error(`[${extensionName}] Ошибка загрузки лорбуков:`, err);
-        toastr.error("Не удалось загрузить список лорбуков", "Lore Book Manager");
+        console.error(`[${extensionName}]`, err);
         return [];
     }
-}
-
-// Удалить один лорбук — пробуем разные форматы имени
-async function deleteLorebook(name) {
-    // Пробуем как есть
-    let response = await fetch("/api/worldinfo/delete", {
-        method: "POST",
-        headers: getRequestHeaders(),
-        body: JSON.stringify({ name: name }),
-    });
-    if (response.ok) return true;
-
-    // Пробуем без .json
-    const nameNoExt = name.replace(/\.json$/i, "");
-    response = await fetch("/api/worldinfo/delete", {
-        method: "POST",
-        headers: getRequestHeaders(),
-        body: JSON.stringify({ name: nameNoExt }),
-    });
-    if (response.ok) return true;
-
-    // Пробуем с .json
-    const nameWithExt = nameNoExt + ".json";
-    response = await fetch("/api/worldinfo/delete", {
-        method: "POST",
-        headers: getRequestHeaders(),
-        body: JSON.stringify({ name: nameWithExt }),
-    });
-    if (response.ok) return true;
-
-    throw new Error(`HTTP ${response.status}`);
 }
 
 // Обновить счётчик
@@ -61,7 +23,7 @@ function updateCount() {
     $("#lore-manager-count").text(`Лорбуков: ${total} | Выбрано: ${selected}`);
 }
 
-// Отрисовать список лорбуков
+// Отрисовать список
 function renderList(lorebooks) {
     const $list = $("#lore-manager-list");
     $list.empty();
@@ -72,8 +34,7 @@ function renderList(lorebooks) {
         return;
     }
 
-    lorebooks.forEach((entry) => {
-        const name = typeof entry === "string" ? entry : (entry.name || entry.uid || JSON.stringify(entry));
+    lorebooks.forEach((name) => {
         const safeId = `lore-cb-${name.replace(/[^a-zA-Z0-9]/g, "_")}`;
         const $item = $(`
             <div class="lore-manager-item">
@@ -89,10 +50,8 @@ function renderList(lorebooks) {
 }
 
 // Обновить список
-async function refreshList() {
-    const $list = $("#lore-manager-list");
-    $list.html('<div class="lore-manager-empty"><i class="fa-solid fa-spinner fa-spin"></i> Загрузка...</div>');
-    const lorebooks = await fetchAllLorebooks();
+function refreshList() {
+    const lorebooks = getAllLorebooks();
     renderList(lorebooks);
 }
 
@@ -112,24 +71,24 @@ async function deleteSelected() {
     const confirmed = confirm(`Удалить ${names.length} лорбук(ов)?\n\n${names.join("\n")}`);
     if (!confirmed) return;
 
-    let successCount = 0;
-    let failCount = 0;
+    let ok = 0;
+    let fail = 0;
 
     for (const name of names) {
         try {
-            await deleteLorebook(name);
-            successCount++;
-            console.log(`[${extensionName}] Удалён: ${name}`);
+            // Используем встроенную функцию ST
+            await deleteWorldInfo(name);
+            ok++;
         } catch (err) {
-            console.error(`[${extensionName}] Не удалось удалить "${name}":`, err);
-            failCount++;
+            console.error(`[${extensionName}] Ошибка удаления "${name}":`, err);
+            fail++;
         }
     }
 
-    if (successCount > 0) toastr.success(`Удалено: ${successCount}`, "Lore Book Manager");
-    if (failCount > 0) toastr.error(`Ошибка при удалении: ${failCount}`, "Lore Book Manager");
+    if (ok > 0) toastr.success(`Удалено: ${ok}`, "Lore Book Manager");
+    if (fail > 0) toastr.error(`Не удалось удалить: ${fail}`, "Lore Book Manager");
 
-    await refreshList();
+    refreshList();
 }
 
 // Инициализация
