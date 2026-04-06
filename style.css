@@ -1,1 +1,65 @@
-/* styles will be added later */
+.lore-manager-settings {
+    padding: 5px 0;
+}
+
+.lore-manager-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 8px 0;
+    padding: 4px;
+    border: 1px solid var(--SmartThemeBorderColor, #ccc);
+    border-radius: 4px;
+}
+
+.lore-manager-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.lore-manager-item:hover {
+    background: var(--SmartThemeBlurTintColor, rgba(255,255,255,0.05));
+}
+
+.lore-manager-item label {
+    cursor: pointer;
+    flex: 1;
+    margin: 0;
+    font-size: 0.95em;
+}
+
+.lore-manager-toolbar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.lore-manager-toolbar button {
+    flex: 1;
+    min-width: 80px;
+}
+
+.lore-manager-empty {
+    text-align: center;
+    padding: 10px;
+    opacity: 0.6;
+    font-style: italic;
+}
+
+.lore-manager-count {
+    font-size: 0.85em;
+    opacity: 0.7;
+    margin-bottom: 6px;
+}
+
+#lore-manager-delete {
+    background: var(--SmartThemeRedColor, #c0392b) !important;
+}
