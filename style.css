@@ -1,29 +1,36 @@
 .lore-manager-toolbar {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 8px;
+    gap: 4px;
+    margin-bottom: 6px;
 }
 
 .lore-manager-toolbar button {
     flex: 1;
-    min-width: 80px;
+    min-width: 60px;
+    padding: 3px 6px !important;
+    font-size: 0.78em !important;
+    height: auto !important;
+    line-height: 1.4 !important;
+}
+
+.lore-manager-toolbar button i {
+    font-size: 0.9em;
 }
 
 .lore-manager-count {
-    font-size: 0.85em;
-    opacity: 0.7;
-    margin-bottom: 6px;
+    font-size: 0.78em;
+    opacity: 0.6;
+    margin-bottom: 4px;
 }
 
 .lore-manager-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    max-height: 300px;
+    gap: 1px;
+    max-height: 220px;
     overflow-y: auto;
-    margin: 8px 0;
-    padding: 4px;
+    padding: 2px;
     border: 1px solid var(--SmartThemeBorderColor, #ccc);
     border-radius: 4px;
 }
@@ -31,9 +38,9 @@
 .lore-manager-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 4px 6px;
-    border-radius: 4px;
+    gap: 6px;
+    padding: 2px 5px;
+    border-radius: 3px;
 }
 
 .lore-manager-item:hover {
@@ -44,15 +51,23 @@
     cursor: pointer;
     flex: 1;
     margin: 0;
+    font-size: 0.85em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .lore-manager-item input[type=checkbox] {
     cursor: pointer;
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
 }
 
 .lore-manager-empty {
     text-align: center;
-    padding: 10px;
+    padding: 8px;
     opacity: 0.6;
     font-style: italic;
+    font-size: 0.85em;
 }
